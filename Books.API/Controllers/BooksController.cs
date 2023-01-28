@@ -44,8 +44,9 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet("books/{id}", Name = "GetBook")]
-    [TypeFilter(typeof(BookResultFilter))]
-    public async Task<IActionResult> GetBook(Guid id)
+    [TypeFilter(typeof(BookWithCoversResultFilter))]
+    public async Task<IActionResult> GetBook(Guid id,
+            CancellationToken cancellationToken)
     {
         var bookEntity = await _booksRepository.GetBookAsync(id);
         if (bookEntity == null)
@@ -53,7 +54,15 @@ public class BooksController : ControllerBase
             return NotFound();
         }
 
-        return Ok(bookEntity);
+        //var bookCover = await _booksRepository.GetBookCoverAsync("dummycover");
+
+        var bookCovers = await _booksRepository.
+            GetBookCoversProcessOneByOneAsync(id, cancellationToken);
+
+        //var bookCovers =
+        //    await _booksRepository.GetBookCoversProcessAfterWaitForAllAsync(id);
+
+        return Ok((bookEntity, bookCovers));
     }
 
 
@@ -68,7 +77,7 @@ public class BooksController : ControllerBase
     //        return NotFound();
     //    }
 
-        //var bookCover = await _booksRepository
+        //var bookCover = await _booksRepository    
         //    .GetBookCoverAsync("dummycover");
 
         //var bookCovers = await _booksRepository.
